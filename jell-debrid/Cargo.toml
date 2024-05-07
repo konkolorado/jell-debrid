@@ -1,0 +1,11 @@
+[package]
+name = "jell-debrid"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clients = { path = "../clients" }
+env_logger = "0.11.3"
+figment = { version = "0.10.18", features = ["env"] }
+serde = { version = "1.0.198", features = ["derive"] }
+tokio = { version = "1.37.0", features = ["macros", "rt-multi-thread"] }
