@@ -19,13 +19,13 @@ impl JellyfinClient {
 
     pub async fn get_system_info(&self) -> Result<SystemInfo, reqwest::Error> {
         self.client
-            .request::<SystemInfo>(reqwest::Method::GET, "/System/Info", None, None)
+            .request::<SystemInfo>(reqwest::Method::GET, "/System/Info", None, None, None)
             .await
     }
 
     pub async fn refresh_libraries(&self) -> Result<NoContent, reqwest::Error> {
         self.client
-            .request::<NoContent>(reqwest::Method::POST, "/Library/Refresh", None, None)
+            .request::<NoContent>(reqwest::Method::POST, "/Library/Refresh", None, None, None)
             .await
     }
 }

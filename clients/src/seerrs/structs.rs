@@ -15,13 +15,13 @@ pub struct PageInfo {
 #[derive(Deserialize, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaInfo {
-    id: u64,
-    tmdb_id: u64,
-    tvdb_id: Option<u64>,
-    status: u8,
+    pub id: u64,
+    pub tmdb_id: u64,
+    pub tvdb_id: Option<u64>,
+    pub status: u8,
     //requests: Vec<HashMap<K, V>>,
-    created_at: String,
-    updated_at: String,
+    pub created_at: String,
+    pub updated_at: String,
 }
 
 #[derive(Deserialize, Debug, Serialize)]
@@ -62,6 +62,24 @@ pub enum UserOrString {
 
 #[derive(Deserialize, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct Episode {
+    pub id: u64,
+    pub season_number: u8,
+    pub episode_number: u8,
+    pub name: String,
+}
+
+#[derive(Deserialize, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Season {
+    pub id: u64,
+    pub season_number: u8,
+    pub status: u8,
+    pub episodes: Option<Vec<Episode>>,
+}
+
+#[derive(Deserialize, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct MediaRequest {
     pub created_at: String,
     pub id: u64,
@@ -73,6 +91,7 @@ pub struct MediaRequest {
     pub root_folder: Option<String>,
     pub server_id: Option<u64>,
     pub status: u8,
+    pub seasons: Vec<Season>,
     pub r#type: String,
     pub updated_at: String,
 }

@@ -1,6 +1,8 @@
+use log;
 use std::collections::HashMap;
 use std::time::Duration;
 
+use mini_moka::unsync::Cache;
 use oauth2;
 use oauth2::{DeviceAuthorizationResponse, ExtraDeviceAuthorizationFields, TokenResponse};
 use reqwest;
@@ -8,10 +10,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::base::HttpClient;
 use crate::trakt::client::client_utils::async_http_client;
-use crate::trakt::structs::WatchList;
+use crate::trakt::structs::{SearchResult, WatchList};
 
 pub struct TraktClient {
     client: HttpClient,
+    cache: Cache<String, Result<SearchResult, reqwest::Error>>,
+}
+
+#[derive(Debug)]
+pub enum MediaType {
+    Movie,
+    Show,
 }
 
 pub struct TraktOAuthToken {
@@ -34,6 +43,9 @@ impl TraktClient {
         headers.insert("trakt-api-version", "2".parse().unwrap());
         Self {
             client: HttpClient::new("https://api.trakt.tv", Some(headers)).unwrap(),
+            cache: Cache::builder()
+                .time_to_live(Duration::from_secs(5 * 60))
+                .build(),
         }
     }
 
@@ -92,15 +104,46 @@ impl TraktClient {
     }
 
     pub async fn get_watchlist(&self) -> Result<WatchList, reqwest::Error> {
-        //https://api.trakt.tv/sync/watchlist/type/sort
         self.client
             .request::<WatchList>(
                 reqwest::Method::GET,
                 "/sync/watchlist/movies,shows",
                 None,
                 None,
+                None,
             )
             .await
+    }
+
+    pub async fn search(&mut self, id: u64, kind: &str) -> &Result<SearchResult, reqwest::Error> {
+        let search_kind = if kind == "movie" {
+            "movie"
+        } else if kind == "tv" {
+            "show"
+        } else {
+            "movie"
+        };
+
+        let cache_key = format!("{id}-{search_kind}");
+        if self.cache.contains_key(&cache_key) {
+            log::debug!("Using cached search result for {cache_key}");
+            return self.cache.get(&cache_key).unwrap();
+        }
+
+        let params = HashMap::from([("type".to_string(), search_kind.to_string())]);
+        let result = self
+            .client
+            .request::<SearchResult>(
+                reqwest::Method::GET,
+                format!("/search/tmdb/{id}").as_str(),
+                Some(params),
+                None,
+                None,
+            )
+            .await;
+
+        self.cache.insert(cache_key.clone(), result);
+        self.cache.get(&cache_key).unwrap()
     }
 }
 

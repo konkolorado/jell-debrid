@@ -21,10 +21,9 @@
             },
             "args": [],
             "cwd": "${workspaceFolder}",
+            "envFile": ".envrc",
             "env": {
-                "RD_API_KEY": "XWT7RORMD4EAB2P2SZUG7N5KGWPGQTZXKTQNDL6MRNDXBIOKA3IQ",
-                "JF_API_KEY": "f9a8bcfd29f745cb8fae247d0df24de0",
-                "SEERR_API_KEY": "MTcxMjczMTM3NTEzNzRhNjRmOGNiLTI1ODgtNDZlMS05MmJhLThlZmE3OGQzYTAyOQ=="
+                "RUST_LOG": "INFO"
             }
         },
         {

@@ -23,7 +23,13 @@ impl SeerrClient {
             ("filter".to_string(), "processing".to_string()),
         ]);
         self.client
-            .request::<Requests>(reqwest::Method::GET, "/api/v1/request", Some(params), None)
+            .request::<Requests>(
+                reqwest::Method::GET,
+                "/api/v1/request",
+                Some(params),
+                None,
+                None,
+            )
             .await
     }
 }

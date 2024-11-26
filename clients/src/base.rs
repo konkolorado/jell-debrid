@@ -36,20 +36,33 @@ impl HttpClient {
         path: &str,
         params: Option<HashMap<String, String>>,
         json: Option<HashMap<String, String>>,
+        data: Option<HashMap<String, String>>,
     ) -> Result<T, reqwest::Error>
     where
         T: for<'de> serde::Deserialize<'de>,
     {
         let url_str = format!("{}{}", self.base_url, path);
         let params_ = params.unwrap_or(HashMap::new());
-        let url = reqwest::Url::parse_with_params(&url_str, params_).unwrap();
-        let payload = json.unwrap_or(HashMap::new());
+        let url = if params_.is_empty() {
+            reqwest::Url::parse(&url_str).unwrap()
+        } else {
+            reqwest::Url::parse_with_params(&url_str, params_).unwrap()
+        };
 
-        let builder = self
-            .client
-            .request(method.clone(), url.clone())
-            .headers(self.headers.clone())
-            .json(&payload);
+        let builder: reqwest::RequestBuilder = if data.is_some() {
+            let form_data = data.unwrap();
+            self.client
+                .request(method.clone(), url.clone())
+                .headers(self.headers.clone())
+                .form(&form_data)
+        } else {
+            let payload: HashMap<String, String> = json.unwrap_or(HashMap::new());
+            self.client
+                .request(method.clone(), url.clone())
+                .headers(self.headers.clone())
+                .json(&payload)
+        };
+
         let response = builder.send().await?;
 
         log::debug!(
@@ -62,6 +75,7 @@ impl HttpClient {
         if text.is_empty() {
             text.push_str("{}")
         }
+        log::debug!("{method} {url} -- {text}", url = url, text = text);
         let resp = serde_json::from_str(&text).unwrap();
         Ok(resp)
     }
